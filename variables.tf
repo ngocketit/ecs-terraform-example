@@ -1,6 +1,6 @@
 variable "company_name" {
   description = "Company name"
-  default     = "rvo"
+  default     = "nt"
 }
 
 variable "project_name" {
