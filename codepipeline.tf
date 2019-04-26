@@ -47,6 +47,20 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
         "codebuild:StartBuild"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:*"
+      ],
+      "Resource": "*"
     }
   ]
 }
@@ -96,6 +110,91 @@ resource "aws_codepipeline" "codepipeline" {
 
       configuration = {
         ProjectName = "${aws_codebuild_project.main.name}"
+      }
+    }
+  }
+}
+
+resource "aws_codepipeline" "codepipeline-ecr" {
+  name = "${var.project_name}-ecs-codepipeline-ecr-${var.env}"
+  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+
+  artifact_store {
+    location = "${aws_s3_bucket.codepipeline_bucket.bucket}"
+    type     = "S3"
+  }
+
+  stage {
+    name = "Source"
+
+    action {
+      name             = "Source1"
+      category         = "Source"
+      owner            = "AWS"
+      provider         = "ECR"
+      version          = "1"
+      output_artifacts = ["build_output1"]
+
+      configuration = {
+        ImageTag = "latest"
+        RepositoryName = "task1"
+      }
+    }
+    action {
+      name             = "Source2"
+      category         = "Source"
+      owner            = "AWS"
+      provider         = "ECR"
+      version          = "1"
+      output_artifacts = ["build_output2"]
+
+      configuration = {
+        ImageTag = "latest"
+        RepositoryName = "task2"
+      }
+    }
+  }
+
+  stage {
+    name = "Deploy"
+
+    action {
+      name             = "Deploy1"
+      category         = "Deploy"
+      owner            = "AWS"
+      provider         = "CodeDeployToECS"
+      input_artifacts  = ["build_output1"]
+      version          = "1"
+
+      configuration {
+        ApplicationName = "${aws_codedeploy_app.task1.name}"
+        DeploymentGroupName = "${aws_codedeploy_deployment_group.task1.deployment_group_name}"
+        Image1ArtifactName = "build_output1"
+        Image1ContainerName = "IMAGE1_NAME"
+        AppSpecTemplatePath = "appspec1.yaml"
+        AppSpecTemplateArtifact = "SourceArtifact"
+        TaskDefinitionTemplateArtifact = "SourceArtifact"
+        TaskDefinitionTemplatePath = "task-definition-template-1.json"
+      }
+    }
+
+    action {
+      name             = "Deploy2"
+      category         = "Deploy"
+      owner            = "AWS"
+      provider         = "CodeDeployToECS"
+      input_artifacts  = ["build_output2"]
+      version          = "1"
+
+      configuration {
+        ApplicationName = "${aws_codedeploy_app.task2.name}"
+        DeploymentGroupName = "${aws_codedeploy_deployment_group.task2.deployment_group_name}"
+        Image1ArtifactName = "build_output2"
+        Image1ContainerName = "IMAGE1_NAME"
+        AppSpecTemplatePath = "appspec1.yaml"
+        AppSpecTemplateArtifact = "SourceArtifact"
+        TaskDefinitionTemplateArtifact = "SourceArtifact"
+        TaskDefinitionTemplatePath = "task-definition-template-2.json"
       }
     }
   }

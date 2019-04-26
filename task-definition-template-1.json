@@ -1,0 +1,23 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "ecs-app-1",
+      "image": "<IMAGE1_NAME>",
+      "cpu": 128,
+      "memoryReservation": 128,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true
+    }
+  ],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "family": "awse-ecs-task-1-dev"
+}

@@ -98,6 +98,7 @@ resource "aws_codebuild_project" "main" {
     image                       = "aws/codebuild/standard:1.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
+    privileged_mode = true
 
     environment_variable {
       "name"  = "AWS_DEFAULT_REGION"

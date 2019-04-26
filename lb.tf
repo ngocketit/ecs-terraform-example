@@ -49,7 +49,32 @@ resource "aws_alb_target_group" "ecs-target-group-1" {
     unhealthy_threshold = "2"
     interval            = "30"
     matcher             = "200"
-    path                = "/task2/"
+    path                = "/task1/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = "5"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_alb_target_group" "ecs-target-group-1-green" {
+  name                = "${var.project_name}-ecs-1-green-${var.env}"
+  # This port doesn't really matter since ECS will map it to the correct ones
+  port                = "8000"
+  protocol            = "HTTP"
+  vpc_id              = "${aws_vpc.main.id}"
+  depends_on          = ["aws_alb.ecs-loadbalancer"]
+  tags   = "${merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))}"
+
+  health_check {
+    healthy_threshold   = "5"
+    unhealthy_threshold = "2"
+    interval            = "30"
+    matcher             = "200"
+    path                = "/task1/"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = "5"
@@ -74,7 +99,32 @@ resource "aws_alb_target_group" "ecs-target-group-2" {
     unhealthy_threshold = "2"
     interval            = "30"
     matcher             = "200"
-    path                = "/task1/"
+    path                = "/task2/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = "5"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_alb_target_group" "ecs-target-group-2-green" {
+  name                = "${var.project_name}-ecs-2-green-${var.env}"
+  # This port doesn't really matter since ECS will map it to the correct ones
+  port                = "8000"
+  protocol            = "HTTP"
+  vpc_id              = "${aws_vpc.main.id}"
+  depends_on          = ["aws_alb.ecs-loadbalancer"]
+  tags   = "${merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))}"
+
+  health_check {
+    healthy_threshold   = "5"
+    unhealthy_threshold = "2"
+    interval            = "30"
+    matcher             = "200"
+    path                = "/task2/"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = "5"

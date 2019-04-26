@@ -15,6 +15,10 @@ resource "aws_ecs_service" "ecs-service-1" {
     container_port    = 8000
     container_name    = "ecs-app-1"
   }
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 }
 
 resource "aws_ecs_service" "ecs-service-2" {
@@ -29,6 +33,10 @@ resource "aws_ecs_service" "ecs-service-2" {
     target_group_arn  = "${aws_alb_target_group.ecs-target-group-2.arn}"
     container_port    = 8000
     container_name    = "ecs-app-2"
+  }
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
   }
 }
 
