@@ -9,6 +9,7 @@ phases:
       - cd ..
       - cd task2
       - npm install
+      - cd ..
       - echo Logging into ECR
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:

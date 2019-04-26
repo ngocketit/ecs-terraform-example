@@ -64,6 +64,15 @@ resource "aws_iam_role_policy" "codebuild" {
         "${aws_s3_bucket.codepipeline_bucket.arn}",
         "${aws_s3_bucket.codepipeline_bucket.arn}/*"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:*"
+      ],
+      "Resource": [
+        "*"
+      ]
     }
   ]
 }
