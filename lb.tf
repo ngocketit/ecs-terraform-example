@@ -6,7 +6,7 @@ resource "aws_autoscaling_group" "ecs-autoscaling-group" {
   vpc_zone_identifier         = ["${aws_subnet.public.0.id}", "${aws_subnet.public.1.id}"]
   launch_configuration        = "${aws_launch_configuration.ecs-launch-configuration.name}"
   health_check_type           = "ELB"
-  target_group_arns           = ["${aws_alb_target_group.ecs-target-group-sinatra.arn}", "${aws_alb_target_group.ecs-target-group-node.arn}"]
+  target_group_arns           = ["${aws_alb_target_group.ecs-target-group-1.arn}", "${aws_alb_target_group.ecs-target-group-2.arn}"]
 }
 
 resource "aws_launch_configuration" "ecs-launch-configuration" {
@@ -35,8 +35,8 @@ resource "aws_alb" "ecs-loadbalancer" {
   tags   = "${merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))}"
 }
 
-resource "aws_alb_target_group" "ecs-target-group-sinatra" {
-  name                = "${var.project_name}-ecs-sinatra-${var.env}"
+resource "aws_alb_target_group" "ecs-target-group-1" {
+  name                = "${var.project_name}-ecs-1-${var.env}"
   # This port doesn't really matter since ECS will map it to the correct ones
   port                = "8000"
   protocol            = "HTTP"
@@ -60,8 +60,8 @@ resource "aws_alb_target_group" "ecs-target-group-sinatra" {
   }
 }
 
-resource "aws_alb_target_group" "ecs-target-group-node" {
-  name                = "${var.project_name}-ecs-node-${var.env}"
+resource "aws_alb_target_group" "ecs-target-group-2" {
+  name                = "${var.project_name}-ecs-2-${var.env}"
   # This port doesn't really matter since ECS will map it to the correct ones
   port                = "8000"
   protocol            = "HTTP"
@@ -91,18 +91,18 @@ resource "aws_alb_listener" "ecs-alb-listener" {
   protocol          = "HTTP"
   
   default_action {
-    target_group_arn = "${aws_alb_target_group.ecs-target-group-node.arn}"
+    target_group_arn = "${aws_alb_target_group.ecs-target-group-2.arn}"
     type             = "forward"
   }
 }
 
-resource "aws_alb_listener_rule" "ecs-alb-listener-rule-sinatra" {
+resource "aws_alb_listener_rule" "ecs-alb-listener-rule-1" {
   listener_arn = "${aws_alb_listener.ecs-alb-listener.arn}"
   priority     = 100
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_alb_target_group.ecs-target-group-sinatra.arn}"
+    target_group_arn = "${aws_alb_target_group.ecs-target-group-1.arn}"
   }
 
   condition {
@@ -111,13 +111,13 @@ resource "aws_alb_listener_rule" "ecs-alb-listener-rule-sinatra" {
   }
 }
 
-resource "aws_alb_listener_rule" "ecs-alb-listener-rule-node" {
+resource "aws_alb_listener_rule" "ecs-alb-listener-rule-2" {
   listener_arn = "${aws_alb_listener.ecs-alb-listener.arn}"
   priority     = 101
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_alb_target_group.ecs-target-group-node.arn}"
+    target_group_arn = "${aws_alb_target_group.ecs-target-group-2.arn}"
   }
 
   condition {

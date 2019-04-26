@@ -68,3 +68,15 @@ variable "ecs-instance-type" {
   description = "Type of ECS instance"
   default     = "t2.medium"
 }
+
+variable "github_oauth_token" {
+  description = "Github authentication token"
+}
+
+variable "github_webhook_secret" {
+  description = "Github webhook secret"
+}
+
+variable "github_organization" {
+  description = "Github organization"
+}
