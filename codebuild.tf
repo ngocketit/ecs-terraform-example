@@ -89,6 +89,15 @@ resource "aws_codebuild_project" "main" {
     image                       = "aws/codebuild/standard:1.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
+
+    environment_variable {
+      "name"  = "AWS_DEFAULT_REGION"
+      "value" = "${data.aws_region.current.name}"
+    }
+    environment_variable {
+      "name"  = "AWS_ACCOUNT_ID"
+      "value" = "${data.aws_caller_identity.current.account_id}"
+    }
   }
 
   source {

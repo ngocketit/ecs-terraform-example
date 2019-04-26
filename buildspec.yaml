@@ -4,9 +4,28 @@ phases:
   pre_build:
     commands:
       - echo Pre build phase
+      - cd task1
+      - npm install
+      - cd ..
+      - cd task2
+      - npm install
+      - echo Logging into ECR
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
       - echo Build phase
+      - cd task1
+      - echo Building Docker image for task1
+      - docker build -t task1:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - docker tag task1:$CODEBUILD_RESOLVED_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/task1:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - cd ..
+      - cd task2
+      - echo Building Docker image for task2
+      - docker build -t task2:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - docker tag task2:$CODEBUILD_RESOLVED_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/task2:$CODEBUILD_RESOLVED_SOURCE_VERSION
   post_build:
     commands:
       - echo Post build phase
+      - echo Pushing images to ECR
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/task1:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/task2:$CODEBUILD_RESOLVED_SOURCE_VERSION
