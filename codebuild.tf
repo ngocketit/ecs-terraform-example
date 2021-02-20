@@ -23,7 +23,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "codebuild" {
-  role = "${aws_iam_role.codebuild.name}"
+  role = aws_iam_role.codebuild.name
 
   policy = <<POLICY
 {
@@ -80,9 +80,9 @@ POLICY
 }
 
 resource "aws_codebuild_project" "main" {
-  name = "${var.company_name}-ecs-main-${var.env}"
+  name          = "${var.company_name}-ecs-main-${var.env}"
   build_timeout = "5"
-  service_role  = "${aws_iam_role.codebuild.arn}"
+  service_role  = aws_iam_role.codebuild.arn
 
   artifacts {
     type = "CODEPIPELINE"
@@ -90,7 +90,7 @@ resource "aws_codebuild_project" "main" {
 
   cache {
     type     = "S3"
-    location = "${aws_s3_bucket.cache.bucket}"
+    location = aws_s3_bucket.cache.bucket
   }
 
   environment {
@@ -98,20 +98,20 @@ resource "aws_codebuild_project" "main" {
     image                       = "aws/codebuild/standard:1.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
-    privileged_mode = true
+    privileged_mode             = true
 
     environment_variable {
-      "name"  = "AWS_DEFAULT_REGION"
-      "value" = "${data.aws_region.current.name}"
+      name  = "AWS_DEFAULT_REGION"
+      value = data.aws_region.current.name
     }
     environment_variable {
-      "name"  = "AWS_ACCOUNT_ID"
-      "value" = "${data.aws_caller_identity.current.account_id}"
+      name  = "AWS_ACCOUNT_ID"
+      value = data.aws_caller_identity.current.account_id
     }
   }
 
   source {
-    type = "CODEPIPELINE"
+    type      = "CODEPIPELINE"
     buildspec = "buildspec.yaml"
   }
 

@@ -24,7 +24,7 @@ EOF
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
   name = "${var.project_name}-ecs-codepipeline-${var.env}"
-  role = "${aws_iam_role.codepipeline_role.id}"
+  role = aws_iam_role.codepipeline_role.id
 
   policy = <<EOF
 {
@@ -61,6 +61,11 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
         "codedeploy:*"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "*"
     }
   ]
 }
@@ -68,11 +73,11 @@ EOF
 }
 
 resource "aws_codepipeline" "codepipeline" {
-  name = "${var.project_name}-ecs-codepipeline-${var.env}"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  name     = "${var.project_name}-ecs-codepipeline-${var.env}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.codepipeline_bucket.bucket}"
+    location = aws_s3_bucket.codepipeline_bucket.bucket
     type     = "S3"
   }
 
@@ -88,10 +93,10 @@ resource "aws_codepipeline" "codepipeline" {
       output_artifacts = ["source_output"]
 
       configuration = {
-        Owner  = "${var.github_organization}"
-        Repo   = "ecs-terraform-example"
-        Branch = "master"
-        OAuthToken = "${var.github_oauth_token}"
+        Owner      = var.github_organization
+        Repo       = "ecs-terraform-example"
+        Branch     = "master"
+        OAuthToken = var.github_oauth_token
       }
     }
   }
@@ -100,27 +105,27 @@ resource "aws_codepipeline" "codepipeline" {
     name = "Build"
 
     action {
-      name            = "Build"
-      category        = "Build"
-      owner           = "AWS"
-      provider        = "CodeBuild"
-      input_artifacts = ["source_output"]
+      name             = "Build"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      input_artifacts  = ["source_output"]
       output_artifacts = ["build_output"]
-      version         = "1"
+      version          = "1"
 
       configuration = {
-        ProjectName = "${aws_codebuild_project.main.name}"
+        ProjectName = aws_codebuild_project.main.name
       }
     }
   }
 }
 
 resource "aws_codepipeline" "codepipeline-ecr" {
-  name = "${var.project_name}-ecs-codepipeline-ecr-${var.env}"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+  name     = "${var.project_name}-ecs-codepipeline-ecr-${var.env}"
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.codepipeline_bucket.bucket}"
+    location = aws_s3_bucket.codepipeline_bucket.bucket
     type     = "S3"
   }
 
@@ -136,7 +141,7 @@ resource "aws_codepipeline" "codepipeline-ecr" {
       output_artifacts = ["build_output1"]
 
       configuration = {
-        ImageTag = "latest"
+        ImageTag       = "latest"
         RepositoryName = "task1"
       }
     }
@@ -149,8 +154,23 @@ resource "aws_codepipeline" "codepipeline-ecr" {
       output_artifacts = ["build_output2"]
 
       configuration = {
-        ImageTag = "latest"
+        ImageTag       = "latest"
         RepositoryName = "task2"
+      }
+    }
+    action {
+      name             = "Source3"
+      category         = "Source"
+      owner            = "ThirdParty"
+      provider         = "GitHub"
+      version          = "1"
+      output_artifacts = ["source_output"]
+
+      configuration = {
+        Owner      = var.github_organization
+        Repo       = "ecs-terraform-example"
+        Branch     = "master"
+        OAuthToken = var.github_oauth_token
       }
     }
   }
@@ -159,55 +179,55 @@ resource "aws_codepipeline" "codepipeline-ecr" {
     name = "Deploy"
 
     action {
-      name             = "Deploy1"
-      category         = "Deploy"
-      owner            = "AWS"
-      provider         = "CodeDeployToECS"
-      input_artifacts  = ["build_output1"]
-      version          = "1"
+      name            = "Deploy1"
+      category        = "Deploy"
+      owner           = "AWS"
+      provider        = "CodeDeployToECS"
+      input_artifacts = ["build_output1", "source_output"]
+      version         = "1"
 
       configuration {
-        ApplicationName = "${aws_codedeploy_app.task1.name}"
-        DeploymentGroupName = "${aws_codedeploy_deployment_group.task1.deployment_group_name}"
-        Image1ArtifactName = "build_output1"
-        Image1ContainerName = "IMAGE1_NAME"
-        AppSpecTemplatePath = "appspec1.yaml"
-        AppSpecTemplateArtifact = "SourceArtifact"
-        TaskDefinitionTemplateArtifact = "SourceArtifact"
-        TaskDefinitionTemplatePath = "task-definition-template-1.json"
+        ApplicationName                = aws_codedeploy_app.task1.name
+        DeploymentGroupName            = aws_codedeploy_deployment_group.task1.deployment_group_name
+        Image1ArtifactName             = "build_output1"
+        Image1ContainerName            = "IMAGE1_NAME"
+        AppSpecTemplatePath            = "appspec1.yaml"
+        AppSpecTemplateArtifact        = "source_output"
+        TaskDefinitionTemplateArtifact = "source_output"
+        TaskDefinitionTemplatePath     = "task-definition-template-1.json"
       }
     }
 
     action {
-      name             = "Deploy2"
-      category         = "Deploy"
-      owner            = "AWS"
-      provider         = "CodeDeployToECS"
-      input_artifacts  = ["build_output2"]
-      version          = "1"
+      name            = "Deploy2"
+      category        = "Deploy"
+      owner           = "AWS"
+      provider        = "CodeDeployToECS"
+      input_artifacts = ["build_output2", "source_output"]
+      version         = "1"
 
       configuration {
-        ApplicationName = "${aws_codedeploy_app.task2.name}"
-        DeploymentGroupName = "${aws_codedeploy_deployment_group.task2.deployment_group_name}"
-        Image1ArtifactName = "build_output2"
-        Image1ContainerName = "IMAGE1_NAME"
-        AppSpecTemplatePath = "appspec1.yaml"
-        AppSpecTemplateArtifact = "SourceArtifact"
-        TaskDefinitionTemplateArtifact = "SourceArtifact"
-        TaskDefinitionTemplatePath = "task-definition-template-2.json"
+        ApplicationName                = aws_codedeploy_app.task2.name
+        DeploymentGroupName            = aws_codedeploy_deployment_group.task2.deployment_group_name
+        Image1ArtifactName             = "build_output2"
+        Image1ContainerName            = "IMAGE1_NAME"
+        AppSpecTemplatePath            = "appspec1.yaml"
+        AppSpecTemplateArtifact        = "source_output"
+        TaskDefinitionTemplateArtifact = "source_output"
+        TaskDefinitionTemplatePath     = "task-definition-template-2.json"
       }
     }
   }
 }
 
 resource "aws_codepipeline_webhook" "main" {
-  name = "${var.project_name}-ecs-codepipeline-${var.env}"
+  name            = "${var.project_name}-ecs-codepipeline-${var.env}"
   authentication  = "GITHUB_HMAC"
   target_action   = "Source"
-  target_pipeline = "${aws_codepipeline.codepipeline.name}"
+  target_pipeline = aws_codepipeline.codepipeline.name
 
   authentication_configuration {
-    secret_token = "${var.github_webhook_secret}"
+    secret_token = var.github_webhook_secret
   }
 
   filter {
@@ -223,10 +243,10 @@ resource "github_repository_webhook" "main" {
   name = "web"
 
   configuration {
-    url          = "${aws_codepipeline_webhook.main.url}"
+    url          = aws_codepipeline_webhook.main.url
     content_type = "form"
     insecure_ssl = true
-    secret       = "${var.github_webhook_secret}"
+    secret       = var.github_webhook_secret
   }
 
   events = ["push"]
