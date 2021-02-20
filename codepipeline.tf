@@ -186,7 +186,7 @@ resource "aws_codepipeline" "codepipeline-ecr" {
       input_artifacts = ["build_output1", "source_output"]
       version         = "1"
 
-      configuration {
+      configuration = {
         ApplicationName                = aws_codedeploy_app.task1.name
         DeploymentGroupName            = aws_codedeploy_deployment_group.task1.deployment_group_name
         Image1ArtifactName             = "build_output1"
@@ -206,7 +206,7 @@ resource "aws_codepipeline" "codepipeline-ecr" {
       input_artifacts = ["build_output2", "source_output"]
       version         = "1"
 
-      configuration {
+      configuration = {
         ApplicationName                = aws_codedeploy_app.task2.name
         DeploymentGroupName            = aws_codedeploy_deployment_group.task2.deployment_group_name
         Image1ArtifactName             = "build_output2"
@@ -239,8 +239,6 @@ resource "aws_codepipeline_webhook" "main" {
 # Wire the CodePipeline webhook into a GitHub repository.
 resource "github_repository_webhook" "main" {
   repository = "ecs-terraform-example"
-
-  name = "web"
 
   configuration {
     url          = aws_codepipeline_webhook.main.url

@@ -8,7 +8,7 @@ resource "aws_ecs_service" "ecs-service-1" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.ecs-task-definition-1.family
   desired_count   = 2
-  depends_on      = ["aws_iam_role_policy_attachment.ecs-service-role-attachment"]
+  depends_on      = [aws_iam_role_policy_attachment.ecs-service-role-attachment]
 
   load_balancer {
     target_group_arn = aws_alb_target_group.ecs-target-group-1.arn
@@ -27,7 +27,7 @@ resource "aws_ecs_service" "ecs-service-2" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.ecs-task-definition-2.family
   desired_count   = 2
-  depends_on      = ["aws_iam_role_policy_attachment.ecs-service-role-attachment"]
+  depends_on      = [aws_iam_role_policy_attachment.ecs-service-role-attachment]
 
   load_balancer {
     target_group_arn = aws_alb_target_group.ecs-target-group-2.arn

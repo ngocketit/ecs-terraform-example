@@ -41,7 +41,7 @@ resource "aws_alb_target_group" "ecs-target-group-1" {
   port       = "8000"
   protocol   = "HTTP"
   vpc_id     = aws_vpc.main.id
-  depends_on = ["aws_alb.ecs-loadbalancer"]
+  depends_on = [aws_alb.ecs-loadbalancer]
   tags       = merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))
 
   health_check {
@@ -66,7 +66,7 @@ resource "aws_alb_target_group" "ecs-target-group-1-green" {
   port       = "8000"
   protocol   = "HTTP"
   vpc_id     = aws_vpc.main.id
-  depends_on = ["aws_alb.ecs-loadbalancer"]
+  depends_on = [aws_alb.ecs-loadbalancer]
   tags       = merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))
 
   health_check {
@@ -91,7 +91,7 @@ resource "aws_alb_target_group" "ecs-target-group-2" {
   port       = "8000"
   protocol   = "HTTP"
   vpc_id     = aws_vpc.main.id
-  depends_on = ["aws_alb.ecs-loadbalancer"]
+  depends_on = [aws_alb.ecs-loadbalancer]
   tags       = merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))
 
   health_check {
@@ -116,7 +116,7 @@ resource "aws_alb_target_group" "ecs-target-group-2-green" {
   port       = "8000"
   protocol   = "HTTP"
   vpc_id     = aws_vpc.main.id
-  depends_on = ["aws_alb.ecs-loadbalancer"]
+  depends_on = [aws_alb.ecs-loadbalancer]
   tags       = merge(local.common_tags, map("Name", "${var.project_name}-ecs-${var.env}"))
 
   health_check {
@@ -156,8 +156,9 @@ resource "aws_alb_listener_rule" "ecs-alb-listener-rule-1" {
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["/task2/*"]
+    path_pattern {
+      values = ["/task2/*"]
+    }
   }
 }
 
@@ -171,7 +172,8 @@ resource "aws_alb_listener_rule" "ecs-alb-listener-rule-2" {
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["/task1/*"]
+    path_pattern {
+      values = ["/task1/*"]
+    }
   }
 }
